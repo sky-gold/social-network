@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports: ["8000:8000"]
+    environment:
+      USER_SERVICE_URL: "http://user-service:8001"
+      POST_SERVICE_URL: "http://post-service:8002"
+      STATS_SERVICE_URL: "http://stats-service:8003"
+    depends_on:
+      - user-service
+      - post-service
+      - stats-service
+
+  user-service:
+    build: ./user-service
+    ports: ["8001:8001"]
+    environment:
+      DATABASE_URL: "postgresql://user:password@user-db:5432/userdb"
+    depends_on:
+      - user-db
+
+  post-service:
+    build: ./post-service
+    ports: ["8002:8002"]
+    environment:
+      DATABASE_URL: "postgresql://user:password@post-db:5432/postdb"
+      RABBITMQ_URL: "amqp://rabbitmq"
+    depends_on:
+      - post-db
+      - rabbitmq
+
+  stats-service:
+    build: ./stats-service
+    ports: ["8003:8003"]
+    environment:
+      CLICKHOUSE_URL: "clickhouse://clickhouse:8123/statsdb"
+      RABBITMQ_URL: "amqp://rabbitmq"
+    depends_on:
+      - clickhouse
+      - rabbitmq
+
+  user-db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: userdb
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+
+  post-db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postdb
+    volumes:
+      - post-db-data:/var/lib/postgresql/data
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports: ["8123:8123"]
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+volumes:
+  user-db-data:
+  post-db-data:
+  clickhouse-data:
+  rabbitmq-data:

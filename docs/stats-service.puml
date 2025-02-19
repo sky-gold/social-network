@@ -1,0 +1,27 @@
+@startuml
+entity post_stats {
+  *post_id: uuid [PK]
+  views_count: bigint
+  likes_count: bigint
+  comments_count: bigint
+  last_updated: timestamp
+}
+
+entity view_events {
+  *event_id: uuid [PK]
+  post_id: uuid [FK]
+  user_id: uuid [FK]
+  viewed_at: timestamp
+  device_type: varchar(50)
+}
+
+entity comment_events {
+  *event_id: uuid [PK]
+  comment_id: uuid [FK]
+  user_id: uuid [FK]
+  created_at: timestamp
+}
+
+post_stats }o--|| view_events
+post_stats }o--|| comment_events
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+entity posts {
+  *id: uuid [PK]
+  user_id: uuid [FK]
+  content: text
+  created_at: timestamp
+  updated_at: timestamp
+  visibility: enum(public,friends,private)
+}
+
+entity comments {
+  *id: uuid [PK]
+  post_id: uuid [FK]
+  user_id: uuid [FK]
+  parent_comment_id: uuid [FK]
+  content: text
+  created_at: timestamp
+}
+
+entity likes {
+  *user_id: uuid [FK]
+  *post_id: uuid [FK]
+  created_at: timestamp
+}
+
+posts ||--o{ comments
+comments ||--o{ comments
+posts ||--o{ likes
+@enduml

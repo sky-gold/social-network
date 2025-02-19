@@ -1,0 +1,29 @@
+@startuml
+entity users {
+  *id: uuid [PK]
+  username: varchar(50)
+  email: varchar(255)
+  password_hash: varchar(255)
+  created_at: timestamp
+  role: enum(user,admin)
+  is_active: boolean
+}
+
+entity profiles {
+  *user_id: uuid [FK]
+  full_name: varchar(255)
+  avatar_url: varchar(511)
+  bio: text
+  last_login: timestamp
+}
+
+entity sessions {
+  *session_id: uuid [PK]
+  user_id: uuid [FK]
+  expires_at: timestamp
+  ip_address: inet
+}
+
+users ||--o{ profiles
+users ||--o{ sessions
+@enduml
