@@ -1,0 +1,128 @@
+specification {
+    element person {
+        style {
+            shape person
+            color green
+        }
+    }
+    element softwareSystem
+    element container
+    element component
+    element containerDb {
+        style {
+            shape cylinder
+        }
+    }
+    element queue {
+        style {
+            shape queue
+        }
+    }
+}
+
+model {
+  user = person "Пользователь" "Пользователь социальной сети"
+
+  socialNetwork = softwareSystem "Social Network" {
+    apiGateway = container "API Gateway" {
+      description "Единая точка входа для всех запросов"
+      technology "Python/Flask"
+    }
+
+    clientApp = container "Client Application" {
+      description "Клиентский интерфейс (веб и мобильное приложение)"
+      technology "React/React Native"
+    }
+
+    userService = container "User Service" {
+      description "Управление пользователями и аутентификацией"
+      technology "Python/Flask"
+      
+      component userController "User Controller" "Обрабатывает HTTP запросы"
+      component authService "Auth Service" "JWT аутентификация"
+      component userRepository "User Repository" "Работа с базой данных"
+    }
+
+    postService = container "Post Service" {
+      description "Управление постами и комментариями"
+      technology "Python/Flask"
+      
+      component postController "Post Controller" "Обрабатывает операции с постами"
+      component commentController "Comment Controller" "Управление комментариями"
+      component postRepository "Post Repository" "Хранение данных"
+    }
+
+    statsService = container "Stats Service" {
+      description "Сбор аналитики и статистики"
+      technology "Python/Flask"
+      
+      component statsCollector "Stats Collector" "Обработка событий"
+      component analyticsService "Analytics Service" "Генерация отчетов"
+    }
+
+    userDb = containerDb "PostgreSQL" {
+      description "База данных пользователей"
+      technology "PostgreSQL 14"
+    }
+
+    postDb = containerDb "PostgreSQL" {
+      description "База данных постов и комментариев"
+      technology "PostgreSQL 14"
+    }
+
+    statsDb = containerDb "ClickHouse" {
+      description "Хранилище аналитических данных"
+      technology "ClickHouse"
+    }
+
+    rabbitmq = queue "RabbitMQ" {
+      description "Брокер сообщений для событий"
+      technology "RabbitMQ"
+    }
+  }
+
+  user -> socialNetwork.clientApp "Использует" "HTTPS"
+  socialNetwork.clientApp -> socialNetwork.apiGateway "Отправляет запросы" "REST/HTTPS"
+  
+  socialNetwork.apiGateway -> socialNetwork.userService "Маршрутизирует" "JSON/HTTPS" {
+    description "Запросы связанные с пользователями"
+  }
+  
+  socialNetwork.apiGateway -> socialNetwork.postService "Маршрутизирует" "JSON/HTTPS" {
+    description "Операции с постами и комментариями"
+  }
+  
+  socialNetwork.apiGateway -> socialNetwork.statsService "Маршрутизирует" "JSON/HTTPS" {
+    description "Запросы статистики"
+  }
+
+  socialNetwork.userService -> socialNetwork.userDb "Читает/Пишет" "SQL"
+  socialNetwork.postService -> socialNetwork.postDb "Читает/Пишет" "SQL"
+  socialNetwork.statsService -> socialNetwork.statsDb "Читает/Пишет" "SQL"
+
+  socialNetwork.postService -> socialNetwork.rabbitmq "Публикует события" "AMQP" {
+    description "События лайков, просмотров и комментариев"
+  }
+  
+  socialNetwork.statsService -> socialNetwork.rabbitmq "Потребляет события" "AMQP" {
+    description "Обработка событий для аналитики"
+  }
+
+  socialNetwork.userService.userController -> socialNetwork.userService.authService "Использует"
+  socialNetwork.userService.userController -> socialNetwork.userService.userRepository "Использует"
+  
+  socialNetwork.postService.postController -> socialNetwork.postService.postRepository "Использует"
+  socialNetwork.postService.commentController -> socialNetwork.postService.postRepository "Использует"
+  
+  socialNetwork.statsService.statsCollector -> socialNetwork.statsService.analyticsService "Передает данные"
+}
+
+views {
+   view main {
+        include *
+    }
+
+    view integrations {
+        include socialNetwork.*
+    }
+}
