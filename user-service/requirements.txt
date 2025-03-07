@@ -1,0 +1,12 @@
+fastapi>=0.68.0
+uvicorn>=0.15.0
+sqlalchemy>=1.4.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+psycopg2-binary>=2.9.0
+python-dotenv>=0.19.0
+pytest>=6.2.0
+respx>=0.20.0
+pydantic[email]>=2.0
+pytest-mock
+pytest-cov
